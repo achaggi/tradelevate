@@ -19,11 +19,10 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth();
 const db = getFirestore();
 
-// Google Sign-In Function
 async function googleLogin() {
     const provider = new GoogleAuthProvider();
-    const result = await signInWithPopup(auth, provider);
-    const user = result.user;
+    await signInWithRedirect(auth, provider);
+}
 
     // Store user in Firestore
     await setDoc(doc(db, "users", user.uid), {
