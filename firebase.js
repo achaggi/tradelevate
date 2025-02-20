@@ -17,11 +17,21 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth();
 const db = getFirestore();
 
-// ✅ Google Sign-In (Using Redirect to Fix COOP Error)
 async function googleLogin() {
     const provider = new GoogleAuthProvider();
-    await signInWithRedirect(auth, provider);
+
+    try {
+        // ✅ First, try using a popup (avoids redirect & cookie issues)
+        const result = await signInWithPopup(auth, provider);
+        console.log("User signed in with popup:", result.user);
+    } catch (error) {
+        console.warn("Popup sign-in failed, switching to redirect:", error);
+        
+        // ✅ If popup fails (e.g., blocked by browser), fall back to redirect
+        await signInWithRedirect(auth, provider);
+    }
 }
+
 
 // ✅ Handle login after redirect
 async function handleRedirectResult() {
