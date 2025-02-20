@@ -33,6 +33,49 @@ async function googleLogin() {
     }, { merge: true });
 
     console.log("User signed in:", user);
+    loadUserPortfolios();  // Load portfolios after login
 }
 
+// Function to Create a Portfolio
+async function createPortfolio() {
+    const user = auth.currentUser;
+    if (!user) return alert("Please log in first!");
+
+    const portfolioName = prompt("Enter Portfolio Name:");
+    const startingAmount = parseFloat(prompt("Enter Starting Amount:"));
+
+    if (!portfolioName || isNaN(startingAmount)) return alert("Invalid input!");
+
+    const userRef = doc(db, "users", user.uid);
+    await updateDoc(userRef, {
+        portfolios: arrayUnion({ name: portfolioName, balance: startingAmount })
+    });
+
+    alert("Portfolio Created!");
+    loadUserPortfolios();  // Refresh the list
+}
+
+// Function to Load User Portfolios
+async function loadUserPortfolios() {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const userRef = doc(db, "users", user.uid);
+    const userData = (await getDoc(userRef)).data();
+
+    const portfolioList = document.getElementById("portfolio-list");
+    portfolioList.innerHTML = ""; // Clear previous data
+
+    userData.portfolios.forEach(portfolio => {
+        const div = document.createElement("div");
+        div.innerHTML = `<h3>${portfolio.name} - $${portfolio.balance}</h3>`;
+        portfolioList.appendChild(div);
+    });
+}
+
+// Attach Functions to Buttons
 document.getElementById("login-btn").addEventListener("click", googleLogin);
+document.getElementById("create-portfolio-btn").addEventListener("click", createPortfolio);
+auth.onAuthStateChanged(user => {
+    if (user) loadUserPortfolios();
+});
