@@ -108,7 +108,7 @@ async function deletePortfolio(portfolioName) {
 
     if (!confirm(`Are you sure you want to delete ${portfolioName}?`)) return;
 
-    const userRef = doc(db, "users", user.uid");
+    const userRef = doc(db, "users", user.uid);
     const userData = (await getDoc(userRef)).data();
 
     // Remove the selected portfolio
