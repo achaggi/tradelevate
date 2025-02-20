@@ -17,29 +17,22 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth();
 const db = getFirestore();
 
+//Google Login
 async function googleLogin() {
     const provider = new GoogleAuthProvider();
 
-    try {
-        // ✅ First, try using a popup (avoids redirect & cookie issues)
-        const result = await signInWithPopup(auth, provider);
-        console.log("User signed in with popup:", result.user);
-    } catch (error) {
-        console.warn("Popup sign-in failed, switching to redirect:", error);
-        
-        // ✅ If popup fails (e.g., blocked by browser), fall back to redirect
-        await signInWithRedirect(auth, provider);
-    }
+    // ✅ Only use Redirect (Fixes third-party cookie issues)
+    await signInWithRedirect(auth, provider);
 }
 
 
 // ✅ Handle login after redirect
 async function handleRedirectResult() {
     const result = await getRedirectResult(auth);
-    if (result) {
+    if (result && result.user) {
         const user = result.user;
 
-        // Store user in Firestore
+        // ✅ Save user info in Firestore
         await setDoc(doc(db, "users", user.uid), {
             name: user.displayName,
             email: user.email,
@@ -47,9 +40,12 @@ async function handleRedirectResult() {
         }, { merge: true });
 
         console.log("User signed in:", user);
-        loadUserPortfolios(); // Load portfolios after login
+        loadUserPortfolios(); // Refresh UI
     }
 }
+
+// Run on page load to check if login was successful
+handleRedirectResult();
 
 // ✅ Function to Create a Portfolio
 async function createPortfolio() {
